@@ -29,8 +29,10 @@ async def send_mail(emails:EmailModel):
     html =" <h1>Welcome to Bookly</h1>"
     subject ="welcome to our app"
     
-    send_email.delay(mails, subject, html)
- 
+    # send_email.delay(mails, subject, html) the celeray way
+    message = create_message(recipients=mails ,subject=subject, body=html)
+
+    await mail.send_message(message)
     
     return {"message":"Email sent successfully"}
     
@@ -58,7 +60,10 @@ async def create_user_Account(user_data:UserCreateModel, bg_tasks:BackgroundTask
     emails =[email] 
     subject = "verify your email"
     
-    send_email.delay(emails, subject, html)
+    # send_email.delay(emails, subject, html) using celeray(dont need it rn)
+    message = create_message(recipients=emails, subject=subject, body=html)
+    
+    bg_tasks.add_task(mail.send_message, message)
  
     return {
         "message": "Account Created! Check email to verify your account",
