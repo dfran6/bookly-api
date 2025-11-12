@@ -10,7 +10,7 @@ from .utils import create_access_token, decode_token, generate_password_hash, ve
 from fastapi.responses import JSONResponse
 from .dependencies import RefreshTokenBearer, AccessTokenBearer, get_current_user , RoleChecker
 from src.db.redis import add_jti_to_blocklist
-from src.mail import  mail, create_message
+from src.mail import  mail, create_message, safe_send
 from src.config import Config 
 from src.celery_tasks import send_email
 
@@ -32,9 +32,11 @@ async def send_mail(emails:EmailModel):
     # send_email.delay(mails, subject, html) the celeray way
     message = create_message(recipients=mails ,subject=subject, body=html)
 
-    await mail.send_message(message)
-    
-    return {"message":"Email sent successfully"}
+    success = await safe_send(message)
+
+    if success:
+        return {"message":"Email sent successfully"}
+    return JSONResponse(content={"message":"Failed to send email"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
 
@@ -63,7 +65,8 @@ async def create_user_Account(user_data:UserCreateModel, bg_tasks:BackgroundTask
     # send_email.delay(emails, subject, html) using celeray(dont need it rn)
     message = create_message(recipients=emails, subject=subject, body=html)
     
-    bg_tasks.add_task(mail.send_message, message)
+    # Use safe_send in background so failures are logged and won't raise
+    bg_tasks.add_task(safe_send, message)
  
     return {
         "message": "Account Created! Check email to verify your account",
@@ -205,13 +208,19 @@ async def password_reset_request(email_data:PasswordResetRequestModel):
         body=html_message
     )
     
-    await mail.send_message(message)
-    
+    success = await safe_send(message)
+
+    if success:
+        return JSONResponse(
+            content ={
+                "message":"please check your email to reset your password"
+            },
+            status_code= status.HTTP_200_OK,
+        )
+
     return JSONResponse(
-        content ={
-            "message:":"please check your email to reset your password"
-        },
-        status_code= status.HTTP_200_OK,
+        content={"message":"Failed to send password reset email"},
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
     
 @auth_router.post('/password-reset-confirm/{token}')
