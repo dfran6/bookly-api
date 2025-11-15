@@ -262,3 +262,18 @@ async def reset_account_password(token:str, passwords:PasswordResetConfirmModel,
             },
             status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+    
+@auth_router.delete("/delete_user_account/{user_email}")
+async def delete_user(user_email:str, session: AsyncSession = Depends(get_session)):
+    
+    deleted_user = await user_service.delete_user(user_email, session)
+    
+    if deleted_user is not None:
+        return JSONResponse(
+            content={
+                "message":f"{user_email} has succesfully been deleted"
+            },status_code=status.HTTP_202_ACCEPTED
+          
+        )
+    else:
+        raise UserNotFound()

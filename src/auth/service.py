@@ -43,3 +43,14 @@ class UserService:
         await session.commit()
             
         return user
+    
+    async def delete_user(self, email:str, session:AsyncSession):
+        email_to_be_deleted = await self.get_user_by_email(email, session)
+    
+        if email_to_be_deleted is None:
+           return None
+        
+        await session.delete(email_to_be_deleted)
+        await session.commit()
+        
+        return {}

@@ -1,7 +1,7 @@
 from typing import Any, Callable
 from fastapi import FastAPI, status
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse
 
 class BooklyException(Exception):
     """
@@ -48,6 +48,12 @@ class BookNotFound(BooklyException):
     """
    Book not found
     """    
+    
+class  ReviewNotFound(BooklyException):
+    """
+   Review not found
+    """   
+    
 class TagNotFound(BooklyException):
     """
    Tag not found
@@ -105,7 +111,17 @@ def register_all_errors(app:FastAPI):
             status_code=status.HTTP_404_NOT_FOUND,
             initial_detail= {
                 "message": "Book not found",
-                "error_code":"book_not_foubd"
+                "error_code":"book_not_found"
+            }
+        )
+    )
+    app.add_exception_handler(
+        ReviewNotFound,
+        create_exception_handler(
+            status_code=status.HTTP_404_NOT_FOUND,
+            initial_detail= {
+                "message": "Review not found",
+                "error_code":"Review_not_found"
             }
         )
     )

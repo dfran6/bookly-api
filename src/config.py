@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     MAIL_SSL_TLS: bool = False
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
-    # Optional transactional email provider API key (preferred for PaaS)
     SENDINBLUE_API_KEY: str | None = None
     
     DOMAIN :str

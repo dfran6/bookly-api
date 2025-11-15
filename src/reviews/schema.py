@@ -18,3 +18,8 @@ class ReviewModel(BaseModel):
 class ReviewCreateModel(BaseModel):
     rating: int = Field(le=5)
     review_text : str
+    
+class ReviewUpdateModel(BaseModel):
+    rating: int = Field(le=5)
+    review_text : str
+    
